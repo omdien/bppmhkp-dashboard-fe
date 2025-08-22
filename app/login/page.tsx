@@ -16,22 +16,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include", // penting agar cookie HttpOnly ikut
-          body: JSON.stringify({ username, password }),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Login gagal");
       }
 
-      // sukses → ke dashboard
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan koneksi");
@@ -42,10 +38,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-80"
-      >
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md w-80">
         <h1 className="text-xl font-bold mb-4 text-center">Login</h1>
 
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
@@ -71,9 +64,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className={`w-full py-2 rounded text-white ${
-            loading
-              ? "bg-blue-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
+            loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
           {loading ? "Memproses..." : "Login"}
