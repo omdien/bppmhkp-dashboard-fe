@@ -3,23 +3,26 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const getApiUrl = (path: string) => {
+  return `${process.env.NEXT_PUBLIC_API_URL}${path}`;
+};
+
 export default function LandingPage() {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkLogin = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        const res = await fetch(getApiUrl("/auth/me"), {
           credentials: "include",
         });
-        if (res.ok) {
-          setLoggedIn(true);
-        } else {
-          setLoggedIn(false);
-        }
+        setLoggedIn(res.ok);
       } catch {
         setLoggedIn(false);
+      } finally {
+        setLoading(false);
       }
     };
     checkLogin();
@@ -31,19 +34,12 @@ export default function LandingPage() {
       <nav className="bg-blue-600 text-white p-4 flex justify-between items-center">
         <span className="font-bold text-lg">Aplikasi Report Siap Mutu BPPMHKP</span>
         <div>
-          {loggedIn === null ? null : loggedIn ? (
+          {!loading && (
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push(loggedIn ? "/dashboard" : "/login")}
               className="bg-white text-blue-600 px-4 py-1 rounded hover:bg-gray-100 transition"
             >
-              Masuk ke Dashboard
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push("/login")}
-              className="bg-white text-blue-600 px-4 py-1 rounded hover:bg-gray-100 transition"
-            >
-              Login
+              {loggedIn ? "Masuk ke Dashboard" : "Login"}
             </button>
           )}
         </div>
@@ -63,14 +59,6 @@ export default function LandingPage() {
           <li>Dashboard & report Sertifikasi Pusat Primer</li>
           <li>Dashboard & report Sertifikasi Pusat Pasca Panen</li>
         </ul>
-        {loggedIn !== null && (
-          <button
-            onClick={() => router.push(loggedIn ? "/dashboard" : "/login")}
-            className="bg-blue-600 text-white px-6 py-3 rounded shadow hover:bg-blue-700 transition"
-          >
-            {loggedIn ? "Masuk ke Dashboard" : "Login"}
-          </button>
-        )}
       </header>
 
       {/* Footer */}

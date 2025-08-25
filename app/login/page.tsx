@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -9,6 +9,27 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingLogin, setCheckingLogin] = useState(true); // loading saat cek token
+
+  // ======= cek apakah sudah login =======
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          // sudah login, langsung redirect ke dashboard
+          router.replace("/dashboard"); // pakai replace supaya tidak bisa back ke login
+        }
+      } catch (err) {
+        // belum login → tetap di halaman login
+      } finally {
+        setCheckingLogin(false);
+      }
+    };
+    checkLogin();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +37,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -28,13 +49,19 @@ export default function LoginPage() {
         throw new Error(data.message || "Login gagal");
       }
 
-      router.push("/dashboard");
+      // login sukses → redirect ke dashboard
+      router.replace("/dashboard");
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan koneksi");
     } finally {
       setLoading(false);
     }
   };
+
+  // tampilkan loading sementara cek login
+  if (checkingLogin) {
+    return <div className="flex h-screen items-center justify-center">Memeriksa status login...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
